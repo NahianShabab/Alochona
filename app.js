@@ -5,6 +5,7 @@ const express=require("express");
 const app=express();
 const cors=require('cors');
 const rateLimit=require('express-rate-limit');
+const bodyParser=require('body-parser');
 
 
 // initialize necessary things here before starting the server 
@@ -24,6 +25,8 @@ async function initialize(){
         max:process.env.MAX_REQUEST_PER_WINDOW
         });
         app.use(limiter);
+        app.use(bodyParser.urlencoded({ extended: true }));
+        app.use(bodyParser.json());
     }catch(err){
         throw err;
     }
