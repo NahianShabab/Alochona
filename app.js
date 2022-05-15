@@ -1,6 +1,6 @@
 const dotenv=require('dotenv');
-const database=require('./services/database/databaseAPI');
-const baseRoute=require('./baseRoute');
+const database=require('./database/databaseAPI');
+const baseRoute=require('./routes/baseRoute');
 const express=require("express");
 const app=express();
 const cors=require('cors');
@@ -9,29 +9,31 @@ const rateLimit=require('express-rate-limit');
 
 // initialize necessary things here before starting the server 
 async function initialize(){
-    dotenv.config();
-    
-    //init database
-    await database.createPool();
-    
-    app.use(cors());
-    
-    //use rate limiter 
-    const limiter=rateLimit({
-    windowMs:process.env.REQUEST_WINDOW_MINUTE*60*1000,
-    max:process.env.MAX_REQUEST_PER_WINDOW
-    });
-    app.use(limiter);
-
+    try{
+        dotenv.config();
+        
+        //init database
+        await database.createPool();
+        await database.getConnection();
+        
+        app.use(cors());
+        
+        //use rate limiter 
+        const limiter=rateLimit({
+        windowMs:process.env.REQUEST_WINDOW_MINUTE*60*1000,
+        max:process.env.MAX_REQUEST_PER_WINDOW
+        });
+        app.use(limiter);
+    }catch(err){
+        throw err;
+    }
 }
 
 
 //start the server
-
-initialize().
-then(
-    ()=>{
-
+initialize()
+.then(
+    (value)=>{
         app.use('/api',baseRoute);
 
         app.listen(process.env.PORT,()=>{
@@ -39,7 +41,6 @@ then(
         })
     },
     (reason)=>{
-        console.log('error while initialize: reason: '+reason);
+        console.log(reason);
     }
-);
-
+)
